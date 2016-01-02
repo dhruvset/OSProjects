@@ -1,0 +1,6 @@
+README
+======
+1) The maximum number of page references are fixed to 2000. Value can be modified in by changing value of ARRMAX in source.c code file.
+2) The maximum number of frames can be 100. Value can be modified by changing value of MAXFRAMES in the source.c code file.
+3) The input from the standard input can digits upto 3 digits only.
+4) The project includes solution to LRU also.

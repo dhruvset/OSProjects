@@ -1,0 +1,20 @@
+#include "stdio.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+void readit(FILE *fp);
+void readit(FILE *ff)
+{
+	FILE *fp = ff;
+	char buff[10];
+	fread(buff,10,10,fp);
+	printf("\n%s\n",buff);
+}
+int main()
+{
+	FILE *fp;
+	int f;
+	f = open("/index.html",O_RDONLY);
+	fp = fopen("/index.html","r");
+	readit(fp);
+}

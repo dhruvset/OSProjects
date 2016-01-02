@@ -1,0 +1,32 @@
+Starting setter
+-> set all parameters
+	a) d: debug mode. No scheduling, no threads + logging 
+on STDout.
+	b) h: print help
+	c) l: log file. If not given no logging.
+	d) p: port. default 8080
+	e) r: set the directory (consider ~ also)
+	f) t: time to queue. Default: 60 sec
+	g) n: Execute thread. Default 4
+	h) s: scheduler algo. FCFS or SJF. Default: FCFS
+-> listen
+-> Check the parameters sent by client
+	a) get/head
+	b) no file than display list of files in the directory
+	c) '~' change the directory to /home/<usr>/myhttpd/	
+-> note the timing for logging purposes
+
+-> ask the q-thread (1 thread) to park the request to queue.
+-> after t time, ask the schthread (1 thread) to schd it 
+according to SIZE + Schedule algo etc
+-> ask n threads to execute the requests + write the log
+
+
+port
+RootDirectory
+qtime
+eThread
+Schd
+mode
+logYnN
+LogFile

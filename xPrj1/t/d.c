@@ -1,0 +1,83 @@
+#include "stdio.h"
+#include "string.h"
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#define SIZE 300
+#define DIRC "/myhttpd"
+int main(int argc, char *argv[])
+{
+struct dd 
+{
+	int markforexecution; //0 for no; 1 for yes
+	int filesize;
+	char cmdType[4];
+	char requesttype[10]; //ls or cat
+	char path[SIZE];
+	int clientfd;
+	time_t arrivaltime;
+	time_t responsetime;
+};
+	struct dd tmp_element;
+	struct stat statbuf;
+	mode_t modes;
+	char filerequest[SIZE];
+        
+        strcpy(filerequest,"./root/gg/index.html");
+	if(filerequest[0]=='.')
+	{
+		strcpy(tmp_element.requesttype,"BAD");
+		tmp_element.filesize=0;
+      strcat(tmp_element.path,filerequest);
+	}
+	else
+{
+	if(filerequest[0] == '~')
+	{
+	  int i;
+	  char *s= (char*)getenv("HOME"); //fetch
+	  strcat(tmp_element.path,s);
+	  strcat(tmp_element.path,DIRC);
+	  for(i=1;i<strlen(filerequest);i++)
+	    filerequest[i-1]=filerequest[i];
+          filerequest[i-1]='\0';
+	}
+      strcat(tmp_element.path,filerequest);
+if(stat(tmp_element.path,&statbuf)!=0)
+{
+	strcpy(tmp_element.requesttype,"BAD");
+	tmp_element.filesize=0;
+}
+else
+{
+      modes=statbuf.st_mode;
+      if(S_ISDIR(modes))
+      {
+	  char tmpFile[SIZE]; FILE *fp;
+	  strcpy(tmpFile,tmp_element.path);
+	  strcat(tmpFile,"/index.html");
+	  fp=fopen(tmpFile,"r");
+	  if(fp!=NULL) //file found
+	  {
+	    strcpy(tmp_element.path,tmpFile);
+	    strcpy(tmp_element.requesttype,"CAT");
+          }
+	  else
+	  {
+	    strcpy(tmp_element.requesttype,"LS");
+	  }
+          stat(tmp_element.path,&statbuf);
+          tmp_element.filesize = statbuf.st_size;
+      }
+      else
+      {
+ 	    strcpy(tmp_element.requesttype,"CAT");
+	    tmp_element.filesize = statbuf.st_size;
+      }
+}
+}
+printf("\nfilesize: %d, type: %s, reqtp: %s, path: %s\n",tmp_element.filesize,tmp_element.cmdType,tmp_element.requesttype,tmp_element.path);
+return 0;
+
+}
+

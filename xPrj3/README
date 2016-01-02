@@ -1,0 +1,6 @@
+README
+======
+1) The maximum number of disk references are fixed to 1000. Value can be modified in by changing value of ARRMAX in source.c code file.
+2) The maximum number of cylinders can be 1000. Value can be modified by changing the value of MAXCY in source.c code file.
+3) First cylinder is the default starting cylinder.
+4) Illegal input is not accepted. Need to give a string of integers only.

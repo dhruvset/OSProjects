@@ -1,0 +1,13 @@
+#include "stdio.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+int main()
+{
+	int fd;
+	char path[20];
+	strcpy(path,"/index.html");
+	struct stat statbuff;
+	stat(path,&statbuff);
+	printf("\n:%d: %d\n",statbuff.st_mtime,statbuff.st_size);
+}

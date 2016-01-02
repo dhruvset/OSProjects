@@ -1,0 +1,83 @@
+Design
+
+1) The http server consists of two different modes:
+
+a) DAEMON MODE
+b) DEBUG MODE
+
+In the DAEMON MODE, the http webserver program is forked whenever the function to start the server "" is called. Thereby, creating 
+a different process which takes care of the entire http server and it runs in background. This mode has various options such as to increase
+the number of execution threads, change the scheduling policy, enable/disable logging mechanism, set the listening port and change the time
+of queuing the requests. Apart from this the switch -r <dir> can be used to change the default directory of the webserver.
+
+In DEBUG MODE, the http webserver program is run as a foreground process, with default scheduling (FCFS) and one execution thread. It waits for the
+client request and executes it immediately. It has options such as to enable/disable logging mechanism and set the listening port, change the
+default directory of the webserver.
+
+HTTP Webserver parts:
+1) Parsing switches from the command line.
+2) Starting the server in deamon or debug mode.
+3) Parse the request.
+4) Execute the request (depending upon the mode)
+
+Parsing the switches:
+The function "readParameters" is used to parse the command line arguments given by the shell. It sets the parameters for the http webserver.
+Including the mode (daemon or debug), logging mechanism, default webserver directory, queuing time, defining the listening port, number of execution
+threads to be used and the scheduling algorithm.
+
+Starting the server:
+The modes defined in the program are mode=1 (for daemon mode) and mode=0 (for debug mode). The daemon mode is the default mode of the web server
+unless change to debug mode by using -d switch. If the debug mode is required the number of threads are automatically changed to one and the
+scheduling algorithm is set to FCFS ( First come first serve). Also, the queuing time is reduced to 1 second as the request has to be executed
+immediately.
+
+The server has number of parts:
+1) Two global queues managed by semaphores.
+2) One thread for listening the requests.
+3) One thread to schedule the requests.
+4) 4 (or user defined) threads to execute the requests.
+
+The queues used are basically structures arrays which have elements with datatype:
+1) int filesize;
+2) char cmdType[4];
+3) char requesttype[10];
+4) char path[SIZE];
+5) int clientfd;
+6) time_t arrivaltime;
+7) time_t responsetime;
+8) char clientip[250];
+
+filesize: stores the size of the file requested by the client/browser
+cmdType: is used to store the HTTP request/command viz. GET or HEAD
+requesttype: is used to store the status of the HTTP request viz LS, CAT, BAD. LS indicated it has to display the directory, CAT indicates that
+	     it has to display the file and BAD indicates it an invalid request.
+path: is the path of the file/directory requested.
+clientfd: it is the file descriptor using which the request is being processed and sent back.
+arrivaltime: it is the arrival time of the reqeuest. Used for logging purposes.
+responsetime: it is used for logging purposes and stores the time when the request was executed and sent.
+clientip: it is used to store the IP address of the client. Used for logging purposes only.
+
+The two global queues are used. One is to keep the requests, sort them and move them to the next queue for execution by the execution threads.
+The listening thread keeps filling the first (named rdybuffer[]) queue and scheduling thread sorts (bubble sort used) the requests and inserts them into the execution
+(named exbuffer[]) queue. These queues are controlled by two mutex locks, one for listening thread and scheduling thread to access the rdybuffer[] queue
+and the other mutex lock is shared between scheduling thread and the execution threads to allow them to control the exbuffer[] queue.
+
+Synchronization:
+Semaphores used are:
+1) p_s_emptybuffers and p_s_fullbuffers -->used between listening thread and scheduling thread
+2) s_ex_emptybuffers and s_ex_emptybuffers -->used between scheduling thread and execution threads.
+3) p_s_mutex is used as a binary semaphore to control listener and scheduler threads over ready queue (rdybuffer[]).
+4) s_ex_mutex is used as a binary semaphore to control scheduler and execution threads over execution queue(exbuffer[]).
+
+Scheduling:
+The scheduling is done on iff the policy is SJF, else the thread just returns the latest request and pushes it to the execution queue for the
+execution threads to process it. If the SJF is choosen the scheduling thread sorts the rdybuffer[] queue before returning the shortest (or lowest
+file size) job. Which is then pushed to the execution buffer and fed to the execution threads.
+
+Multithreading:
+The threads are engaged when the mode of the web server is set. If the mode is debugging mode these threads are started: listening thread (named producer), scheduler
+thread and one execution thread. If the mode is daemon, the threads are initiated with number of execution threads set by the user. The function
+"serverfunc" contains the thread initialization code. Each thread has thread functions:
+1) Listening thread has function: "producerfunc" which is invoked when it starts.
+2) Scheduler thread has function: "schedulerfunc".
+3) Execution thread has funciton: "consumerfunc" which is used by execution threads to serve the requests.
